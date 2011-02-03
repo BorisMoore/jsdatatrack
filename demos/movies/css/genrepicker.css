@@ -1,0 +1,53 @@
+﻿.genrepicker
+{
+	width: 100%;
+	float: left;
+	clear: both;
+	margin: 0 0 10px;
+}
+
+.genrepicker ul
+{
+	clear: both;
+	float: left;
+	list-style: none;
+	margin: 0 0 10px;
+	display: block;
+	padding: 0;
+}
+.genrepicker  ul li
+{
+	list-style: none;
+	float: left;
+	border: 1px solid #888;
+	text-decoration: none;
+	margin: 0 5px 0 0;
+	padding: 5px;
+	cursor: pointer;
+	background-color: #fff;
+}
+.genrepicker ul li.noborder
+{
+	border: none;
+}
+.genrepicker ul li:hover
+{
+	border: 1px solid #FF3399;
+}
+.genrepicker ul li.noborder:hover
+{
+	border: none;
+}
+.genrepicker  ul li[disabled]
+{
+	border: 1px solid #ccc;
+	color: #aaa;
+	cursor: default;
+}
+.genrepicker ul li.selected
+{
+	border: 1px solid #foo;
+	color: #042CCA;
+	font-weight: 700;
+	background: url(../images/ui-bg_glass_75_dadada_1x400.png) repeat-x 50% 50%;
+}

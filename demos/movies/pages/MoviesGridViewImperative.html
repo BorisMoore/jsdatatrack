@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<link href="../css/moviespage.css" rel="stylesheet" type="text/css" />
+	<link href="../css/genrepicker.css" rel="stylesheet" type="text/css" />
+	<link href="../css/pager.css" rel="stylesheet" type="text/css" />
+	<link href="../css/moviesgrid.css" rel="stylesheet" type="text/css" />
+	<script src="http://code.jquery.com/jquery.js"" type="text/javascript"></script>
+	<script src="../../../jquery.datalink.js" type="text/javascript"></script>
+	<script src="../../../jquery.tmpl.forControls.js" type="text/javascript"></script>
+	
+	<script src="../../../jquery.defer.js" type="text/javascript"></script>
+	<script src="../../../dataModel/deferDef.js" type="text/javascript"></script>
+	<script src="../../../UI/deferDef.js" type="text/javascript"></script>
+</head>
+<body>
+
+<div class="genrepicker"></div>
+
+<table class="moviesgrid" ></table>
+
+<div class="pager"></div>
+
+<script type="text/javascript">
+
+	/******************************************************************************************************************************
+	Demo shows: 
+
+	dataContext:
+		- does identity management on the tracked items in the data context, 
+		- supports merge options so changes are not overwritten by new downloaded copies of objects
+		* TODO Change tracking for both object and collections, and synchronization with other dataContexts or with server data.
+
+	dataView:
+		- provides a view of a 'dataset', making request through dataContext for tracking of returned objects
+		- paging support with caching of previously returned pages
+		- sorting and filtering support
+
+	oData:
+		- 'pluggable' options for using the dataContext against an oData JSON service
+
+	script loader:
+		- See https://github.com/BorisMoore/DeferJS
+		- Async loading using manifest-based dependency management (deferDef.js)
+
+	UI - Templated Controls:
+		- application typically provides custom templates and css
+		- folder-based convention for finding templates
+		- async loading of templates, using script loader
+		- uses a modified/updated version of jquery.tmpl.js (Prototype version, under investigation), with support for ctl concept, 
+		  as well as a feature allowing you to use a template tag for any plugin. Used in the editTmpl.js for declarative datalink: {{link}}. 
+
+	Controls in this demo:
+		- gridview	
+		- genrepicker ('User control', for movies app. 'Derived' from gridview, with additional options, method overrides, etc.)
+		- pager ('Out of the box' pager control, 'derived' from gridview, with additional options, method overrides, etc.)
+
+	Currently gridView editTmpl.js uses a declarative tag for datalink for the edit mode view, but readonlyTmpl.js does not. 
+	This is because of limitations in datalink. I hope to add better support for using datalink on element content, and some 
+	other scenarios too, and to provide declarative syntax for most of these scenarios. 
+	(TODO: Investigation and discussion around this.)
+	
+	******************************************************************************************************************************/
+
+	// Async load of scripts
+	$.deferSettings.delayDomReady = true;
+	$.defer.oData();
+	$.defer.pager();
+	$.defer.genrePicker();
+
+	var moviesContext, moviesView, genresView, genrePicker, pager, moviesGrid;
+
+	$( function() {
+
+		// When async loading of controls is complete (including async loading of their templates), get the genres data
+		var controls = 0;
+		function created() {
+			controls++;
+			if ( controls >= 3 ) {
+				genresView.refresh({
+					index: 1,
+					filterBy: "substringof('" + genrePicker.filterText + "', Name)"
+				});
+			}
+		}
+
+		// Templated 'genrepicker', which 'derives from' gridview
+		$( ".genrepicker" ).genrePicker({
+			index: 1,
+			buttonCount: 10,
+			filterText: "Drama",
+			onSelect: function( data ) {
+				// When a genre is selected, request new data from the view. 
+				// The data will then get loaded into the moviesgrid and pager
+				if ( data ) {
+					pager.selectedData = 1;
+					moviesView.refresh({
+						index: 1,
+						queryParams: [ encodeURI( data.Name ) ]
+					});
+				} else {
+					moviesView.clear();
+				}
+			},
+	
+			onCreated: function() {
+				genrePicker = this;
+				created();
+			},
+	
+			setFilter: function() {
+				// When a new filter is selected, request new data from the view. 
+				// The data will then get loaded into the genrespicker 
+				// and then the first genre will get loaded into the pager and gridview
+				genresView.refresh({ filterBy: "substringof('" + this.filterText + "', Name)" });
+			},
+	
+			setPrev: function() {
+				// Get the previous set of genres from the view
+				// The data will then get loaded into the genrespicker 
+				genresView.refresh({ index: --this.index });
+			},
+	
+			setNext: function() {
+				// Get the next set of genres from the view
+				// The data will then get loaded into the genrespicker 
+				genresView.refresh({ index: ++this.index });
+			}		 
+		});
+
+		// Templated pager, which 'derives from' gridview
+		$( ".pager" ).pager({
+			pageSize: 5,
+			buttonCount: 5,
+	
+			onSelect: function( selectedIndex ) {
+				// When a page is selected, request new data from the view. 
+				// The data will then get loaded into the moviesgrid
+				moviesView.refresh({
+					index: selectedIndex
+				});
+			},
+	
+			onCreated: function() {
+				pager = this;
+				created();
+			}		 
+		});
+
+		// Templated gridview
+		$( ".moviesgrid" ).gridview({ 
+			editmode: true,
+			templates:"../templates/movies",
+			sortBy: "Name",
+			newItem: { Name: "New Movie" },
+	
+			getDirector: function( data ) {
+				// Deal with data from a linked object
+				data = data.Directors && data.Directors.results[0];
+				return data ? data.Name : "";
+			},
+	
+			onSortBy: function( value ) {
+				// When sort is modified, request new data from the view. 
+				// The data will then get loaded into the moviesgrid
+				moviesView.refresh({ sortBy: value });
+			},		 
+	
+			onCreated: function() {
+				moviesGrid = this;
+				created();
+			}		 
+		});
+
+		// Create new datacontext to track all the movies data from NetFlix
+		// Use the oData settingsm since this is an oData service 
+		moviesContext = $.dataContext( "http://odata.netflix.com/Catalog/Genres", $.dataContext.oDataSettings );
+
+		// Get a view from the datacontext, for the genres 'dataset'
+		moviesView = moviesContext.view({
+			path: "http://odata.netflix.com/Catalog/Genres('$0')/Titles?$expand=Directors",
+			pageSize: 5,
+	
+			onRefresh: function( data, newIndex ) {
+				// When movies data returns, load it into the pager and the moviesgrid
+				if ( newIndex ) {
+					pager.render({
+						count: this.count,
+						selectedData: 1
+					});
+				}
+				moviesGrid.render({
+					currentData: data
+				});
+			}
+		});
+
+		// Get a view from the datacontext, for the movies 'dataset'
+		genresView = moviesContext.view({
+			pageSize: 10,
+	
+			onRefresh: function( data ) {
+				// When genres data returns, load it into the genrepicker, 
+				genrePicker.render({
+					currentData: data,
+					count: this.count
+				});
+				moviesView.sortBy = moviesGrid.sortBy;
+				// Select the first genre, so it gets loaded into pager and gridview
+				genrePicker.onSelect( data[0] || null );
+			}
+		});
+
+	});
+
+</script>
+
+</body>
+</html>
+

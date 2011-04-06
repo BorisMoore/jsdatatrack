@@ -23,14 +23,14 @@ _oData:_
 
 _script loader:_
 
-* See <a href="http://github.com/BorisMoore/DeferJS">http://github.com/BorisMoore/DeferJS</a>
-* Async loading using manifest-based dependency management (deferDef.js)
+* See <a href="http://github.com/BorisMoore/jsdefer">http://github.com/BorisMoore/jsdefer</a>
+* Async loading using manifest-based dependency management (deferdef.js)
 
 _UI - Templated Controls:_
 
 * application typically provides custom templates and css
 * folder-based convention for finding templates
-* async loading of templates, using the DeferJS script loader
+* async loading of templates, using the JsDefer script loader
 * uses a modified/updated version of jquery.tmpl.js (Prototype version, under investigation), with support for ctl concept, 
 as well as a feature allowing you to use a template tag for any plugin. Used in the editTmpl.js for declarative datalink: {{link}}. 
 		

@@ -7,11 +7,11 @@
 	<link href="../css/moviesgrid.css" rel="stylesheet" type="text/css" />
 	<script src="http://code.jquery.com/jquery.js"" type="text/javascript"></script>
 	<script src="../../../jquery.datalink.js" type="text/javascript"></script>
-	<script src="../../../jquery.tmpl.forControls.js" type="text/javascript"></script>
+	<script src="../../../jquery.tmpl.forcontrols.js" type="text/javascript"></script>
 	
 	<script src="../../../jquery.defer.js" type="text/javascript"></script>
-	<script src="../../../dataModel/deferDef.js" type="text/javascript"></script>
-	<script src="../../../UI/deferDef.js" type="text/javascript"></script>
+	<script src="../../../datamodel/deferdef.js" type="text/javascript"></script>
+	<script src="../../../ui/deferdef.js" type="text/javascript"></script>
 </head>
 <body>
 
@@ -40,8 +40,8 @@
 		- 'pluggable' options for using the dataContext against an oData JSON service
 
 	script loader:
-		- See https://github.com/BorisMoore/DeferJS
-		- Async loading using manifest-based dependency management (deferDef.js)
+		- See https://github.com/BorisMoore/jsdefer
+		- Async loading using manifest-based dependency management (deferdef.js)
 
 	UI - Templated Controls:
 		- application typically provides custom templates and css
@@ -173,7 +173,7 @@
 		});
 
 		// Create new datacontext to track all the movies data from NetFlix
-		// Use the oData settingsm since this is an oData service 
+		// Use the oData settings since this is an oData service 
 		moviesContext = $.dataContext( "http://odata.netflix.com/Catalog/Genres", $.dataContext.oDataSettings );
 
 		// Get a view from the datacontext, for the genres 'dataset'
